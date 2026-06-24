@@ -151,7 +151,7 @@ const CARDS = [
         set: 'Relapse Bait',
         rarity: 'common',
         image: 'https://picsum.photos/400/600?random=19',
-        description: 'Get pulled in. Can't escape.'
+        description: 'Get pulled in. Can\'t escape.'
     },
     {
         id: 20,

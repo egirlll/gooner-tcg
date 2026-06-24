@@ -74,16 +74,58 @@
         </div>
     </div>
 
-    <!-- Pack Opening Modal -->
+    <!-- Pack Opening Modal - CS:GO Style -->
     <div id="packModal" class="modal hidden">
         <div class="modal-content pack-opening">
             <button onclick="closePack()" class="modal-close">✕</button>
-            <h2 class="pack-title">Opening Pack...</h2>
-            <div class="pack-container" id="packContainer">
-                <div class="pack-visual">📦</div>
+            
+            <!-- Reel Opening Stage -->
+            <div id="reelStage" class="reel-stage">
+                <h2 class="pack-title">Opening Pack...</h2>
+                <div class="reel-container">
+                    <div class="reel-center-indicator"></div>
+                    <div class="reel-wrapper" id="reelWrapper">
+                        <div class="reel" id="reel"></div>
+                    </div>
+                </div>
+                <button id="spinBtn" onclick="startPackOpening()" class="btn btn-primary" style="margin-top: 2rem;">
+                    <span class="btn-icon">🎮</span>
+                    SPIN
+                </button>
             </div>
-            <div class="cards-reveal" id="cardsReveal"></div>
-            <button id="doneBtn" onclick="closePack()" class="btn btn-primary" style="display: none;">Done</button>
+            
+            <!-- Card Reveal Stage -->
+            <div id="revealStage" class="reveal-stage" style="display: none;">
+                <h2 class="pack-title">Card Revealed!</h2>
+                <div class="winning-card-display" id="winningCardDisplay"></div>
+                <div class="card-reveal-info" id="cardRevealInfo"></div>
+                <div class="reveal-controls">
+                    <button id="nextCardBtn" onclick="nextCardInPack()" class="btn btn-primary" style="display: none;">
+                        <span class="btn-icon">→</span>
+                        Next Card
+                    </button>
+                    <button id="doneBtn" onclick="closePack()" class="btn btn-primary" style="display: none;">
+                        <span class="btn-icon">✓</span>
+                        Done
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Summary Stage -->
+            <div id="summaryStage" class="summary-stage" style="display: none;">
+                <h2 class="pack-title">Pack Summary</h2>
+                <div class="summary-cards-grid" id="summaryCardsGrid"></div>
+                <div class="summary-controls">
+                    <button onclick="openPack()" class="btn btn-primary" id="openAnotherBtn" style="display: none;">
+                        <span class="btn-icon">🎁</span>
+                        Open Another Pack
+                    </button>
+                    <button onclick="closePack()" class="btn btn-secondary">
+                        <span class="btn-icon">✓</span>
+                        Done
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

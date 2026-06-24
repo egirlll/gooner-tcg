@@ -38,6 +38,14 @@ function saveState() {
     localStorage.setItem('gooner_tcg_state', JSON.stringify(appState));
 }
 
+// ===== PACK OPENING STATE =====
+let packOpeningState = {
+    allCards: [],
+    currentCardIndex: 0,
+    isSpinning: false,
+    audioContext: null
+};
+
 // ===== PACK OPENING =====
 function openPack() {
     if (appState.packs <= 0) {
@@ -57,77 +65,356 @@ function openPack() {
         addToCollection(card.id);
     }
     
-    showPackOpening(newCards);
+    packOpeningState.allCards = newCards;
+    packOpeningState.currentCardIndex = 0;
+    
+    showPackOpening();
     updateStats();
 }
 
-function showPackOpening(cards) {
+function showPackOpening() {
     const modal = document.getElementById('packModal');
-    const packContainer = document.getElementById('packContainer');
-    const cardsReveal = document.getElementById('cardsReveal');
-    const doneBtn = document.getElementById('doneBtn');
+    const reelStage = document.getElementById('reelStage');
+    const revealStage = document.getElementById('revealStage');
+    const summaryStage = document.getElementById('summaryStage');
     
     modal.classList.remove('hidden');
-    packContainer.innerHTML = '<div class="pack-visual">📦</div>';
-    cardsReveal.innerHTML = '';
-    doneBtn.style.display = 'none';
     
-    // Play pack opening animation
+    // Show reel stage, hide others
+    reelStage.style.display = 'flex';
+    revealStage.style.display = 'none';
+    summaryStage.style.display = 'none';
+    
+    // Initialize reel
+    initializeReel();
+}
+
+function initializeReel() {
+    const reel = document.getElementById('reel');
+    const spinBtn = document.getElementById('spinBtn');
+    
+    reel.innerHTML = '';
+    packOpeningState.isSpinning = false;
+    spinBtn.style.display = 'flex';
+    spinBtn.disabled = false;
+    
+    // Generate 35-40 random cards for the reel, with winning card near the end
+    const reelCards = generateReelCards();
+    
+    // Render reel cards
+    reelCards.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.className = `reel-card rarity-${card.rarity}`;
+        cardEl.innerHTML = `<img src="${card.image}" alt="${card.name}">`;
+        reel.appendChild(cardEl);
+    });
+    
+    // Store reel data for spin calculation
+    packOpeningState.reelCards = reelCards;
+    packOpeningState.reelDistance = reelCards.length * 170; // 160px card + 10px gap
+}
+
+function generateReelCards() {
+    const cards = [];
+    const winningCard = packOpeningState.allCards[packOpeningState.currentCardIndex];
+    
+    // Add 25-30 random cards first
+    const randomCount = 25 + Math.floor(Math.random() * 6);
+    for (let i = 0; i < randomCount; i++) {
+        const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
+        cards.push(randomCard);
+    }
+    
+    // Add some high-rarity cards for FOMO effect
+    const legendaryCards = getCardsByRarity('legendary');
+    const ultraRareCards = getCardsByRarity('ultra-rare');
+    
+    if (legendaryCards.length > 0) {
+        cards.push(legendaryCards[Math.floor(Math.random() * legendaryCards.length)]);
+    }
+    if (ultraRareCards.length > 0) {
+        cards.push(ultraRareCards[Math.floor(Math.random() * ultraRareCards.length)]);
+    }
+    
+    // Add winning card at the end
+    cards.push(winningCard);
+    
+    // Add a few more cards after to ensure smooth scrolling
+    for (let i = 0; i < 3; i++) {
+        const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
+        cards.push(randomCard);
+    }
+    
+    return cards;
+}
+
+function startPackOpening() {
+    if (packOpeningState.isSpinning) return;
+    
+    const spinBtn = document.getElementById('spinBtn');
+    spinBtn.disabled = true;
+    packOpeningState.isSpinning = true;
+    
+    const reel = document.getElementById('reel');
+    const winningCard = packOpeningState.allCards[packOpeningState.currentCardIndex];
+    const winningIndex = packOpeningState.reelCards.indexOf(winningCard);
+    
+    // Calculate scroll distance to land on winning card (center indicator)
+    // Center of screen is at 50%, each card is 170px (160 + 10 gap)
+    const reel_width = document.getElementById('reelWrapper').offsetWidth;
+    const target_position = (winningIndex * 170) - (reel_width / 2) + 80; // 80 = half card width
+    
+    // Spin animation with gradual slowdown
+    spinReel(reel, target_position, spinBtn);
+}
+
+function spinReel(reel, targetPosition, spinBtn) {
+    const duration = 4000; // 4 seconds total spin
+    const startTime = Date.now();
+    const startPosition = 0;
+    
+    // Initialize audio context for ticks
+    if (!packOpeningState.audioContext) {
+        packOpeningState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function: starts fast, slows down (cubic ease-out)
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        
+        const currentPosition = startPosition + (targetPosition - startPosition) * easeProgress;
+        reel.style.transform = `translateX(-${currentPosition}px)`;
+        
+        // Play tick sound based on speed
+        const speed = 1 - progress;
+        if (speed > 0.1 && Math.random() < speed * 0.3) {
+            playTickSound(speed);
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            // Spin complete
+            reel.style.transform = `translateX(-${targetPosition}px)`;
+            onReelStopped(spinBtn);
+        }
+    };
+    
+    animate();
+}
+
+function playTickSound(speed) {
+    if (!packOpeningState.audioContext) return;
+    
+    try {
+        const ctx = packOpeningState.audioContext;
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        
+        // Pitch based on speed - faster = higher pitch
+        oscillator.frequency.value = 400 + (speed * 300);
+        
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+        
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.05);
+    } catch (e) {
+        // Audio API error, continue anyway
+    }
+}
+
+function onReelStopped(spinBtn) {
+    // Transition to reveal stage
     setTimeout(() => {
-        playPackOpenAnimation(packContainer, cards, cardsReveal, doneBtn);
+        showRevealStage();
     }, 500);
 }
 
-function playPackOpenAnimation(packContainer, cards, cardsReveal, doneBtn) {
-    packContainer.innerHTML = '<div class="pack-visual" style="animation: packExplode 0.6s ease; opacity: 0;">💥</div>';
+function showRevealStage() {
+    const reelStage = document.getElementById('reelStage');
+    const revealStage = document.getElementById('revealStage');
     
-    // Reveal cards one by one
-    cards.forEach((card, index) => {
-        setTimeout(() => {
-            revealCard(card, cardsReveal, index);
-        }, 200 + index * 400);
-    });
+    reelStage.style.display = 'none';
+    revealStage.style.display = 'flex';
     
-    // Show done button after all cards revealed
-    setTimeout(() => {
-        doneBtn.style.display = 'block';
-        doneBtn.style.animation = 'fadeIn 0.3s ease';
-    }, 200 + cards.length * 400);
+    const card = packOpeningState.allCards[packOpeningState.currentCardIndex];
+    displayWinningCard(card);
 }
 
-function revealCard(card, container, index) {
-    const cardDiv = document.createElement('div');
-    cardDiv.className = 'reveal-card';
-    cardDiv.style.animation = `fadeIn 0.3s ease ${index * 50}ms`;
+function displayWinningCard(card) {
+    const winningCardDisplay = document.getElementById('winningCardDisplay');
+    const cardRevealInfo = document.getElementById('cardRevealInfo');
+    const nextCardBtn = document.getElementById('nextCardBtn');
+    const doneBtn = document.getElementById('doneBtn');
     
     const rarityColor = getRarityColor(card.rarity);
     
-    cardDiv.innerHTML = `
-        <div class="reveal-card-inner">
-            <div class="reveal-card-front">?</div>
-            <div class="reveal-card-back" style="background: linear-gradient(135deg, ${rarityColor}22 0%, ${rarityColor}11 100%); border-color: ${rarityColor};">
-                <img src="${card.image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+    // Create card display
+    winningCardDisplay.innerHTML = `
+        <div class="winning-card-inner reveal" style="animation-delay: 0.2s;">
+            <div class="winning-card-front">?</div>
+            <div class="winning-card-back">
+                <img src="${card.image}" alt="${card.name}">
             </div>
         </div>
     `;
     
-    container.appendChild(cardDiv);
+    winningCardDisplay.className = `winning-card-display rarity-${card.rarity}`;
     
-    // Flip animation
+    // Add reveal animation class
     setTimeout(() => {
-        const inner = cardDiv.querySelector('.reveal-card-inner');
-        inner.classList.add('flipped');
+        const inner = winningCardDisplay.querySelector('.winning-card-inner');
+        if (inner) {
+            inner.classList.add('reveal');
+        }
+    }, 100);
+    
+    // Trigger special effects based on rarity
+    if (card.rarity === 'legendary') {
+        playLegendarySound();
+        flashScreen();
+    } else if (card.rarity === 'ultra-rare') {
+        playRareSoundEffect();
+    }
+    
+    // Display card info
+    cardRevealInfo.innerHTML = `
+        <div class="card-reveal-name">${card.name}</div>
+        <div class="card-reveal-rarity rarity-${card.rarity}">${card.rarity.replace('-', ' ').toUpperCase()}</div>
+        <div class="card-reveal-desc">"${card.description}"</div>
+    `;
+    
+    // Show buttons
+    const hasMoreCards = packOpeningState.currentCardIndex < packOpeningState.allCards.length - 1;
+    nextCardBtn.style.display = hasMoreCards ? 'flex' : 'none';
+    doneBtn.style.display = hasMoreCards ? 'none' : 'flex';
+}
+
+function nextCardInPack() {
+    packOpeningState.currentCardIndex++;
+    
+    const hasMoreCards = packOpeningState.currentCardIndex < packOpeningState.allCards.length;
+    
+    if (hasMoreCards) {
+        // Show reel stage again
+        const reelStage = document.getElementById('reelStage');
+        const revealStage = document.getElementById('revealStage');
         
-        // Add glow effect
-        setTimeout(() => {
-            cardDiv.classList.add(`card-glow-${card.rarity}`);
-        }, 300);
+        revealStage.style.display = 'none';
+        reelStage.style.display = 'flex';
+        
+        initializeReel();
+    } else {
+        // Show summary
+        showSummaryStage();
+    }
+}
+
+function showSummaryStage() {
+    const revealStage = document.getElementById('revealStage');
+    const summaryStage = document.getElementById('summaryStage');
+    const openAnotherBtn = document.getElementById('openAnotherBtn');
+    
+    revealStage.style.display = 'none';
+    summaryStage.style.display = 'flex';
+    
+    const summaryCardsGrid = document.getElementById('summaryCardsGrid');
+    summaryCardsGrid.innerHTML = '';
+    
+    // Display all cards in summary
+    packOpeningState.allCards.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.className = `summary-card rarity-${card.rarity}`;
+        cardEl.innerHTML = `<img src="${card.image}" alt="${card.name}">`;
+        summaryCardsGrid.appendChild(cardEl);
+    });
+    
+    // Show open another button if packs available
+    openAnotherBtn.style.display = appState.packs > 0 ? 'flex' : 'none';
+}
+
+function playRareSoundEffect() {
+    if (!packOpeningState.audioContext) {
+        packOpeningState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    try {
+        const ctx = packOpeningState.audioContext;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.3);
+        
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {
+        // Audio error, continue
+    }
+}
+
+function playLegendarySound() {
+    if (!packOpeningState.audioContext) {
+        packOpeningState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    try {
+        const ctx = packOpeningState.audioContext;
+        const now = ctx.currentTime;
+        
+        // Two oscillators for legendary chord
+        for (let freq of [400, 600]) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+            
+            osc.start(now);
+            osc.stop(now + 0.8);
+        }
+    } catch (e) {
+        // Audio error, continue
+    }
+}
+
+function flashScreen() {
+    const modal = document.getElementById('packModal');
+    const originalBg = modal.style.backgroundColor;
+    
+    modal.style.backgroundColor = 'rgba(251, 191, 36, 0.5)';
+    setTimeout(() => {
+        modal.style.backgroundColor = originalBg;
     }, 200);
+    setTimeout(() => {
+        modal.style.backgroundColor = 'rgba(251, 191, 36, 0.3)';
+    }, 400);
+    setTimeout(() => {
+        modal.style.backgroundColor = originalBg;
+    }, 600);
 }
 
 function closePack() {
     document.getElementById('packModal').classList.add('hidden');
-    document.getElementById('cardsReveal').innerHTML = '';
+    packOpeningState.currentCardIndex = 0;
+    packOpeningState.allCards = [];
 }
 
 // ===== COLLECTION =====

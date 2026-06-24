@@ -335,10 +335,12 @@ html, body {
     color: var(--primary-color);
 }
 
-/* ===== PACK OPENING ===== */
+/* ===== PACK OPENING - CS:GO STYLE ===== */
 
 .pack-opening {
     text-align: center;
+    max-width: 900px !important;
+    width: 95vw !important;
 }
 
 .pack-title {
@@ -346,24 +348,300 @@ html, body {
     font-size: 1.5rem;
 }
 
-.pack-container {
+/* ===== REEL STAGE ===== */
+.reel-stage {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    min-height: 150px;
-    margin-bottom: 2rem;
+    gap: 2rem;
 }
 
-.pack-visual {
-    font-size: 5rem;
-    animation: packBounce 0.6s ease infinite;
+.reel-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(20, 20, 40, 0.8) 0%, rgba(30, 30, 50, 0.8) 100%);
+    border: 2px solid rgba(255, 20, 147, 0.3);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(255, 20, 147, 0.1), 0 10px 30px rgba(0, 0, 0, 0.5);
+    margin: 1rem 0;
 }
 
-@keyframes packBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+.reel-center-indicator {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--primary-color), transparent, var(--primary-color));
+    z-index: 10;
+    box-shadow: 0 0 10px var(--primary-color), 0 0 20px rgba(255, 20, 147, 0.5);
 }
 
+.reel-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.reel {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    height: 100%;
+    align-items: center;
+    will-change: transform;
+}
+
+.reel-card {
+    flex-shrink: 0;
+    width: 160px;
+    height: 180px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2a2a4e 0%, #1a1a2e 100%);
+    border: 3px solid;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reel-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.reel-card.rarity-common {
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.reel-card.rarity-rare {
+    border-color: rgba(56, 130, 246, 0.8);
+    box-shadow: 0 0 15px rgba(56, 130, 246, 0.4), 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.reel-card.rarity-ultra-rare {
+    border-color: rgba(168, 85, 247, 0.8);
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.reel-card.rarity-legendary {
+    border-color: rgba(251, 191, 36, 1);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes reelSpin {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(var(--translate-x, 0));
+    }
+}
+
+/* ===== REVEAL STAGE ===== */
+.reveal-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.winning-card-display {
+    position: relative;
+    width: 240px;
+    height: 340px;
+    perspective: 1000px;
+}
+
+.winning-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-style: preserve-3d;
+}
+
+.winning-card-inner.reveal {
+    transform: rotateY(180deg) scale(1.1);
+}
+
+.winning-card-front,
+.winning-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.winning-card-front {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2a2a4e 100%);
+    border: 3px solid var(--primary-color);
+    font-size: 4rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.winning-card-back {
+    transform: rotateY(180deg);
+    border: 3px solid;
+    background: linear-gradient(135deg, rgba(30, 30, 50, 0.95) 0%, rgba(20, 20, 40, 0.95) 100%);
+}
+
+.winning-card-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Rarity-specific glow effects */
+.winning-card-display.rarity-common .winning-card-back {
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+.winning-card-display.rarity-rare .winning-card-back {
+    border-color: rgba(56, 130, 246, 1);
+    box-shadow: 0 0 40px rgba(56, 130, 246, 0.6), inset 0 0 20px rgba(56, 130, 246, 0.1);
+}
+
+.winning-card-display.rarity-ultra-rare .winning-card-back {
+    border-color: rgba(168, 85, 247, 1);
+    box-shadow: 0 0 50px rgba(168, 85, 247, 0.7), inset 0 0 20px rgba(168, 85, 247, 0.15);
+    animation: ultraRareShake 0.6s ease;
+}
+
+.winning-card-display.rarity-legendary .winning-card-back {
+    border-color: rgba(251, 191, 36, 1);
+    box-shadow: 0 0 60px rgba(251, 191, 36, 0.8), inset 0 0 30px rgba(251, 191, 36, 0.2);
+    animation: legendaryShake 0.8s ease, legendaryPulse 0.6s ease;
+}
+
+@keyframes ultraRareShake {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    25% { transform: translateX(-8px) translateY(-8px); }
+    50% { transform: translateX(8px) translateY(8px); }
+    75% { transform: translateX(-8px) translateY(8px); }
+}
+
+@keyframes legendaryShake {
+    0%, 100% { transform: translateX(0) scale(1); }
+    25% { transform: translateX(-10px) scale(1.02); }
+    50% { transform: translateX(10px) scale(1.03); }
+    75% { transform: translateX(-10px) scale(1.02); }
+}
+
+@keyframes legendaryPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.2); }
+}
+
+.card-reveal-info {
+    text-align: center;
+    max-width: 400px;
+}
+
+.card-reveal-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.card-reveal-rarity {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+.card-reveal-desc {
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.reveal-controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* ===== SUMMARY STAGE ===== */
+.summary-stage {
+    animation: fadeIn 0.3s ease;
+}
+
+.summary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.summary-card {
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2a2a4e 0%, #1a1a2e 100%);
+}
+
+.summary-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.summary-card.rarity-common {
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.summary-card.rarity-rare {
+    border-color: rgba(56, 130, 246, 0.8);
+    box-shadow: 0 0 10px rgba(56, 130, 246, 0.3);
+}
+
+.summary-card.rarity-ultra-rare {
+    border-color: rgba(168, 85, 247, 0.8);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+.summary-card.rarity-legendary {
+    border-color: rgba(251, 191, 36, 1);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+}
+
+.summary-controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+/* ===== OLD REVEAL CARDS (kept for reference) ===== */
 .cards-reveal {
     display: flex;
     flex-wrap: wrap;
