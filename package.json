@@ -1,0 +1,23 @@
+{
+  "name": "gooner-tcg",
+  "version": "1.0.0",
+  "description": "Gooner TCG - Collectible Card Pack Opening Experience",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "start": "python -m http.server 8000"
+  },
+  "keywords": [
+    "tcg",
+    "trading-cards",
+    "collectibles",
+    "pack-opening",
+    "web-game"
+  ],
+  "author": "egirlll",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/egirlll/gooner-tcg.git"
+  }
+}

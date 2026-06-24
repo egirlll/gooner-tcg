@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gooner TCG - Collectible Card Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">💅</span>
+                <span class="logo-text">Gooner TCG</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" onclick="goHome()" class="nav-link">Home</a></li>
+                <li><a href="#" onclick="goCollection()" class="nav-link">Collection</a></li>
+                <li><a href="#" onclick="goShop()" class="nav-link">Shop</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <div id="homePage" class="page active">
+        <div class="container">
+            <div class="home-content">
+                <div class="hero">
+                    <h1 class="title">Gooner TCG</h1>
+                    <p class="subtitle">Open packs. Collect legends. Touch grass (probably not).</p>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat">
+                        <div class="stat-label">Packs Owned</div>
+                        <div class="stat-value" id="packsCount">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Cards Collected</div>
+                        <div class="stat-value" id="cardsCollected">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Collection</div>
+                        <div class="stat-value" id="collectionPercent">0%</div>
+                    </div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button onclick="openPack()" class="btn btn-primary">
+                        <span class="btn-icon">🎁</span>
+                        Open Pack
+                    </button>
+                    <button onclick="goShop()" class="btn btn-secondary">
+                        <span class="btn-icon">💳</span>
+                        Buy Packs
+                    </button>
+                </div>
+
+                <div class="free-pack-timer">
+                    <div id="freePackStatus" class="timer-status">Next free pack in: <span id="freePackTimer">24:00:00</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pack Opening Modal -->
+    <div id="packModal" class="modal hidden">
+        <div class="modal-content pack-opening">
+            <button onclick="closePack()" class="modal-close">✕</button>
+            <h2 class="pack-title">Opening Pack...</h2>
+            <div class="pack-container" id="packContainer">
+                <div class="pack-visual">📦</div>
+            </div>
+            <div class="cards-reveal" id="cardsReveal"></div>
+            <button id="doneBtn" onclick="closePack()" class="btn btn-primary" style="display: none;">Done</button>
+        </div>
+    </div>
+
+    <!-- Collection Page -->
+    <div id="collectionPage" class="page hidden">
+        <div class="container">
+            <div class="collection-header">
+                <h1>Your Collection</h1>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterCards('all')">All</button>
+                    <button class="filter-btn" onclick="filterCards('common')">Common</button>
+                    <button class="filter-btn" onclick="filterCards('rare')">Rare</button>
+                    <button class="filter-btn" onclick="filterCards('ultra-rare')">Ultra Rare</button>
+                    <button class="filter-btn" onclick="filterCards('legendary')">Legendary</button>
+                </div>
+            </div>
+            <div class="cards-grid" id="collectionGrid"></div>
+        </div>
+    </div>
+
+    <!-- Card Detail Modal -->
+    <div id="cardModal" class="modal hidden">
+        <div class="modal-content card-detail">
+            <button onclick="closeCard()" class="modal-close">✕</button>
+            <div class="card-detail-content" id="cardDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Shop Page -->
+    <div id="shopPage" class="page hidden">
+        <div class="container">
+            <div class="shop-header">
+                <h1>Pack Shop</h1>
+                <div class="wallet">
+                    <span>💰 Free Packs:</span>
+                    <span id="freePacks" class="balance">0</span>
+                </div>
+            </div>
+
+            <div class="shop-grid">
+                <div class="shop-item">
+                    <div class="pack-card">
+                        <div class="pack-icon">📦</div>
+                        <h3>Standard Pack</h3>
+                        <p class="pack-desc">3-5 cards<br>One per 24 hours</p>
+                        <button onclick="claimFreepack()" class="btn btn-primary">Claim Free Pack</button>
+                        <div id="nextFreeStatus" class="next-free-text"></div>
+                    </div>
+                </div>
+
+                <div class="shop-item">
+                    <div class="pack-card premium">
+                        <div class="pack-icon">✨</div>
+                        <h3>Premium Pack</h3>
+                        <p class="pack-desc">5-7 cards<br>Better odds for Rare+</p>
+                        <div class="premium-badge">COMING SOON</div>
+                        <button disabled class="btn btn-secondary">Link to Throne</button>
+                    </div>
+                </div>
+
+                <div class="shop-item">
+                    <div class="pack-card legendary">
+                        <div class="pack-icon">👑</div>
+                        <h3>Legendary Pack</h3>
+                        <p class="pack-desc">7-10 cards<br>Guaranteed Legendary</p>
+                        <div class="premium-badge">COMING SOON</div>
+                        <button disabled class="btn btn-secondary">Link to Throne</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>About Gooner TCG</h2>
+                <p>Collect digital trading cards featuring egirl and model imagery. Open packs, build your collection, and flex your legendary pulls.</p>
+                <p><strong>Drop rates:</strong> Common (60%) • Rare (25%) • Ultra Rare (10%) • Legendary (5%)</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="cards.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
