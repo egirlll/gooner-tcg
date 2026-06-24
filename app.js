@@ -20,10 +20,10 @@ function loadState() {
     if (saved) {
         appState = JSON.parse(saved);
     } else {
-        // Initialize with 1 free pack
+        // Initialize with 20 free packs for testing
         appState = {
             collection: {},
-            packs: 1,
+            packs: 20,
             lastFreePackTime: null
         };
         saveState();
