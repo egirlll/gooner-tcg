@@ -19,8 +19,12 @@ function loadState() {
     const saved = localStorage.getItem('gooner_tcg_state');
     if (saved) {
         appState = JSON.parse(saved);
+        // Always ensure packs available for testing
+        if (appState.packs <= 0) {
+            appState.packs = 20;
+            saveState();
+        }
     } else {
-        // Initialize with 20 free packs for testing
         appState = {
             collection: {},
             packs: 20,
@@ -189,20 +193,12 @@ function updateFreePackTimer() {
 }
 
 function claimFreepack() {
-    const now = Date.now();
-    const nextFreeTime = appState.lastFreePackTime ? appState.lastFreePackTime + (24 * 60 * 60 * 1000) : null;
-    
-    if (nextFreeTime && now < nextFreeTime) {
-        alert('You already claimed your free pack! Come back later.');
-        return;
-    }
-    
-    appState.packs++;
-    appState.lastFreePackTime = now;
+    appState.packs += 5;
+    appState.lastFreePackTime = null;
     saveState();
     updateStats();
     updateFreePackTimer();
-    alert('🎁 Free pack claimed! Head to the home page to open it.');
+    alert('🎁 5 packs claimed! Head to Home to open them.');
 }
 
 // ===== COLLECTION PAGE =====
