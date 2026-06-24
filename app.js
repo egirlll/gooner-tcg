@@ -377,5 +377,12 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// ===== TEST MODE =====
+function addTestPacks() {
+    appState.packs += 20;
+    saveState();
+    updateStats();
+}
+
 // ===== START APP =====
 window.addEventListener('DOMContentLoaded', init);
