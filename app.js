@@ -114,35 +114,61 @@ function initializeReel() {
     packOpeningState.reelDistance = reelCards.length * 170; // 160px card + 10px gap
 }
 
-function generateReelCards() {
+function generateReelCards(legendaryOnly = false) {
     const cards = [];
     const winningCard = packOpeningState.allCards[packOpeningState.currentCardIndex];
     
-    // Add 25-30 random cards first
-    const randomCount = 25 + Math.floor(Math.random() * 6);
-    for (let i = 0; i < randomCount; i++) {
-        const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
-        cards.push(randomCard);
-    }
-    
-    // Add some high-rarity cards for FOMO effect
-    const legendaryCards = getCardsByRarity('legendary');
-    const ultraRareCards = getCardsByRarity('ultra-rare');
-    
-    if (legendaryCards.length > 0) {
-        cards.push(legendaryCards[Math.floor(Math.random() * legendaryCards.length)]);
-    }
-    if (ultraRareCards.length > 0) {
-        cards.push(ultraRareCards[Math.floor(Math.random() * ultraRareCards.length)]);
-    }
-    
-    // Add winning card at the end
-    cards.push(winningCard);
-    
-    // Add a few more cards after to ensure smooth scrolling
-    for (let i = 0; i < 3; i++) {
-        const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
-        cards.push(randomCard);
+    if (legendaryOnly) {
+        // Generate reel with ONLY legendary cards
+        const legendaryCards = getCardsByRarity('legendary');
+        if (legendaryCards.length === 0) {
+            // Fallback if no legendaries (shouldn't happen)
+            cards.push(winningCard);
+        } else {
+            // Add 12-15 random legendary cards first
+            const randomCount = 12 + Math.floor(Math.random() * 4);
+            for (let i = 0; i < randomCount; i++) {
+                const randomCard = legendaryCards[Math.floor(Math.random() * legendaryCards.length)];
+                cards.push(randomCard);
+            }
+            
+            // Add winning card at the end
+            cards.push(winningCard);
+            
+            // Add a few more legendaries after to ensure smooth scrolling
+            for (let i = 0; i < 2; i++) {
+                const randomCard = legendaryCards[Math.floor(Math.random() * legendaryCards.length)];
+                cards.push(randomCard);
+            }
+        }
+    } else {
+        // Normal reel generation
+        // Add 25-30 random cards first
+        const randomCount = 25 + Math.floor(Math.random() * 6);
+        for (let i = 0; i < randomCount; i++) {
+            const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
+            cards.push(randomCard);
+        }
+        
+        // Add some high-rarity cards for FOMO effect
+        const legendaryCards = getCardsByRarity('legendary');
+        const ultraRareCards = getCardsByRarity('ultra-rare');
+        
+        if (legendaryCards.length > 0) {
+            cards.push(legendaryCards[Math.floor(Math.random() * legendaryCards.length)]);
+        }
+        if (ultraRareCards.length > 0) {
+            cards.push(ultraRareCards[Math.floor(Math.random() * ultraRareCards.length)]);
+        }
+        
+        // Add winning card at the end
+        cards.push(winningCard);
+        
+        // Add a few more cards after to ensure smooth scrolling
+        for (let i = 0; i < 3; i++) {
+            const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
+            cards.push(randomCard);
+        }
     }
     
     return cards;
@@ -231,10 +257,109 @@ function playTickSound(speed) {
 }
 
 function onReelStopped(spinBtn) {
-    // Transition to reveal stage
+    const card = packOpeningState.allCards[packOpeningState.currentCardIndex];
+    
+    // Check if it's a legendary card
+    if (card.rarity === 'legendary') {
+        // Trigger legendary respin effect
+        performLegendaryRespin();
+    } else {
+        // Normal transition
+        setTimeout(() => {
+            showRevealStage();
+        }, 500);
+    }
+}
+
+function performLegendaryRespin() {
+    // Brief pause before the gold flash
     setTimeout(() => {
-        showRevealStage();
+        // Flash the screen gold
+        flashScreenGold();
+        
+        // After flash, reset reel for legendary-only respin
+        setTimeout(() => {
+            performLegendaryReelSpin();
+        }, 800);
     }, 500);
+}
+
+function performLegendaryReelSpin() {
+    const reel = document.getElementById('reel');
+    
+    // Clear and regenerate reel with ONLY legendary cards
+    reel.innerHTML = '';
+    
+    // Generate legendary-only reel
+    const legendaryReelCards = generateReelCards(true);
+    
+    // Render reel cards
+    legendaryReelCards.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.className = `reel-card rarity-${card.rarity}`;
+        cardEl.innerHTML = `<img src="${card.image}" alt="${card.name}">`;
+        reel.appendChild(cardEl);
+    });
+    
+    // Reset transform
+    reel.style.transform = 'translateX(0)';
+    
+    // Store updated reel data
+    packOpeningState.reelCards = legendaryReelCards;
+    packOpeningState.reelDistance = legendaryReelCards.length * 170;
+    
+    // Find winning card in new legendary reel
+    const winningCard = packOpeningState.allCards[packOpeningState.currentCardIndex];
+    const winningIndex = legendaryReelCards.indexOf(winningCard);
+    
+    // Calculate spin target
+    const reel_width = document.getElementById('reelWrapper').offsetWidth;
+    const target_position = (winningIndex * 170) - (reel_width / 2) + 80;
+    
+    // Perform respin (2.5 seconds, slower)
+    spinReelLegendary(reel, target_position);
+}
+
+function spinReelLegendary(reel, targetPosition) {
+    const duration = 2500; // 2.5 seconds - slower respin
+    const startTime = Date.now();
+    const startPosition = 0;
+    
+    // Initialize audio context for ticks
+    if (!packOpeningState.audioContext) {
+        packOpeningState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function: slower spin with smooth deceleration
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        
+        const currentPosition = startPosition + (targetPosition - startPosition) * easeProgress;
+        reel.style.transform = `translateX(-${currentPosition}px)`;
+        
+        // Play fewer tick sounds for respin (different rhythm)
+        const speed = 1 - progress;
+        if (speed > 0.1 && Math.random() < speed * 0.2) {
+            playTickSound(speed);
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            // Legendary respin complete
+            reel.style.transform = `translateX(-${targetPosition}px)`;
+            
+            // Now show the final reveal
+            setTimeout(() => {
+                showRevealStage();
+            }, 300);
+        }
+    };
+    
+    animate();
 }
 
 function showRevealStage() {
@@ -409,6 +534,23 @@ function flashScreen() {
     setTimeout(() => {
         modal.style.backgroundColor = originalBg;
     }, 600);
+}
+
+function flashScreenGold() {
+    const modal = document.getElementById('packModal');
+    const originalBg = modal.style.backgroundColor;
+    
+    // Strong gold flash
+    modal.style.backgroundColor = 'rgba(251, 191, 36, 0.7)';
+    setTimeout(() => {
+        modal.style.backgroundColor = 'rgba(251, 191, 36, 0.5)';
+    }, 150);
+    setTimeout(() => {
+        modal.style.backgroundColor = 'rgba(251, 191, 36, 0.8)';
+    }, 300);
+    setTimeout(() => {
+        modal.style.backgroundColor = originalBg;
+    }, 450);
 }
 
 function closePack() {

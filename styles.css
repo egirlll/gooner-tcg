@@ -418,22 +418,24 @@ html, body {
 }
 
 .reel-card.rarity-common {
-    border-color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .reel-card.rarity-rare {
-    border-color: rgba(56, 130, 246, 0.8);
-    box-shadow: 0 0 15px rgba(56, 130, 246, 0.4), 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 4px solid rgba(56, 130, 246, 1);
+    box-shadow: 0 0 15px rgba(56, 130, 246, 0.6), 0 0 25px rgba(56, 130, 246, 0.3), 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .reel-card.rarity-ultra-rare {
-    border-color: rgba(168, 85, 247, 0.8);
-    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 5px solid rgba(168, 85, 247, 1);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.7), 0 0 35px rgba(168, 85, 247, 0.4), 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .reel-card.rarity-legendary {
-    border-color: rgba(251, 191, 36, 1);
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 6px solid rgba(251, 191, 36, 1);
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.5), 0 4px 15px rgba(0, 0, 0, 0.4);
+    animation: legendaryCardPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes reelSpin {
@@ -442,6 +444,15 @@ html, body {
     }
     100% {
         transform: translateX(var(--translate-x, 0));
+    }
+}
+
+@keyframes legendaryCardPulse {
+    0%, 100% {
+        box-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.5), 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(251, 191, 36, 1), 0 0 70px rgba(251, 191, 36, 0.7), 0 4px 15px rgba(0, 0, 0, 0.4);
     }
 }
 
@@ -616,22 +627,23 @@ html, body {
 }
 
 .summary-card.rarity-common {
-    border-color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .summary-card.rarity-rare {
-    border-color: rgba(56, 130, 246, 0.8);
-    box-shadow: 0 0 10px rgba(56, 130, 246, 0.3);
+    border: 4px solid rgba(56, 130, 246, 1);
+    box-shadow: 0 0 15px rgba(56, 130, 246, 0.6), 0 0 25px rgba(56, 130, 246, 0.3);
 }
 
 .summary-card.rarity-ultra-rare {
-    border-color: rgba(168, 85, 247, 0.8);
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+    border: 5px solid rgba(168, 85, 247, 1);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.7), 0 0 35px rgba(168, 85, 247, 0.4);
 }
 
 .summary-card.rarity-legendary {
-    border-color: rgba(251, 191, 36, 1);
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    border: 6px solid rgba(251, 191, 36, 1);
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.5);
+    animation: legendaryCardPulse 1.5s ease-in-out infinite;
 }
 
 .summary-controls {
